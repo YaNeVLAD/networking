@@ -1,0 +1,42 @@
+В1: 3 TCP-сессии с установлением соединения (SYN, SYN-ACK, ACK)
+tcpdump -r netdump.pcap -n 'FLOW'   |  head -5 then tail -4
+
+21:27:44.031084 eth0  Out IP 172.26.220.8.51960 > 8.47.69.6.80: Flags [S], seq 3847354538, win 64480, options [mss 1240,sackOK,TS val 3484289827 ecr 0,nop,wscale 10], length 0
+21:27:44.206880 eth0  In  IP 8.47.69.6.80 > 172.26.220.8.51960: Flags [S.], seq 4201928818, ack 3847354539, win 65535, options [mss 1250,sackOK,TS val 869514343 ecr 3484289827,nop,wscale 13], length 0
+21:27:44.207026 eth0  Out IP 172.26.220.8.51960 > 8.47.69.6.80: Flags [.], ack 1, win 63, options [nop,nop,TS val 3484290002 ecr 869514343], length 0
+21:27:44.207147 eth0  Out IP 172.26.220.8.51960 > 8.47.69.6.80: Flags [P.], seq 1:75, ack 1, win 63, options [nop,nop,TS val 3484290003 ecr 869514343], length 74: HTTP: GET / HTTP/1.1
+21:27:44.386660 eth0  In  IP 8.47.69.6.80 > 172.26.220.8.51960: Flags [.], ack 75, win 16, options [nop,nop,TS val 869514517 ecr 3484290003], length 0
+21:27:44.395500 eth0  Out IP 172.26.220.8.51960 > 8.47.69.6.80: Flags [.], ack 1043, win 66, options [nop,nop,TS val 3484290191 ecr 869514524], length 0
+21:27:44.395711 eth0  Out IP 172.26.220.8.51960 > 8.47.69.6.80: Flags [F.], seq 75, ack 1043, win 66, options [nop,nop,TS val 3484290191 ecr 869514524], length 0
+21:27:44.630775 eth0  In  IP 8.47.69.6.80 > 172.26.220.8.51960: Flags [F.], seq 1043, ack 76, win 16, options [nop,nop,TS val 869514707 ecr 3484290191], length 0
+21:27:44.630980 eth0  Out IP 172.26.220.8.51960 > 8.47.69.6.80: Flags [.], ack 1044, win 66, options [nop,nop,TS val 3484290426 ecr 869514707], length 0
+
+
+
+В2: DNS запрос к google.com
+tcpdump -r netdump.pcap -nv 'udp port 53' | grep -i google
+
+172.26.220.8.49955 > 172.26.208.1.53: 62885+ [1au] A? google.com. (51)
+172.26.208.1.53 > 172.26.220.8.49955: 62885-$ 6/0/0 google.com. A 64.233.162.101, google.com. A 64.233.162.138, google.com. A 64.233.162.102, google.com. A 64.233.162.100, google.com. A 64.233.162.139, google.com. A 64.233.162.113 (134)
+
+
+
+В3: Любой ICMP-пакет (пинг)
+tcpdump -r netdump.pcap -n icmp
+
+21:27:38.899521 eth0  Out IP 172.26.220.8 > 8.8.8.8: ICMP echo request, id 381, seq 1, length 64
+21:27:38.962748 eth0  In  IP 8.8.8.8 > 172.26.220.8: ICMP echo reply, id 381, seq 1, length 64
+21:27:39.897855 eth0  Out IP 172.26.220.8 > 8.8.8.8: ICMP echo request, id 381, seq 2, length 64
+21:27:39.991810 eth0  In  IP 8.8.8.8 > 172.26.220.8: ICMP echo reply, id 381, seq 2, length 64
+21:27:40.894720 eth0  Out IP 172.26.220.8 > 8.8.8.8: ICMP echo request, id 381, seq 3, length 64
+21:27:41.018108 eth0  In  IP 8.8.8.8 > 172.26.220.8: ICMP echo reply, id 381, seq 3, length 64
+
+
+В4: Самый большой по размеру пакет в дампе.
+  packet #   : 9017 / 9150
+  frame size : 65555 bytes
+  timestamp  : 1790792909.084951
+
+tcpdump -r netdump.pcap -nv -c 9017 | tail -1
+
+127.0.0.1.9099 > 127.0.0.1.39392: Flags [.], cksum 0xfdf4 (incorrect -> 0x2c81), seq 208384:273867, ack 1, win 64, options [nop,nop,TS val 3531116497 ecr 1561009569], length 65483
