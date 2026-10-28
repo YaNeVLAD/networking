@@ -97,6 +97,22 @@ int tcp_socket_listen(const socket_t socket, const int backlog)
 	return 0;
 }
 
+int tcp_socket_wait_for(const socket_t socket, const long timeout_ms)
+{
+	const SOCKET s = (SOCKET)socket;
+	fd_set read_set;
+
+	FD_ZERO(&read_set);
+	FD_SET(s, &read_set);
+
+	const struct timeval timeout = {
+		.tv_sec = timeout_ms / 1000,
+		.tv_usec = (timeout_ms % 1000) * 1000
+	};
+
+	return select(0, &read_set, NULL, NULL, &timeout);
+}
+
 socket_t tcp_socket_accept(const socket_t socket)
 {
 	const SOCKET s = (SOCKET)socket;

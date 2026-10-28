@@ -1,5 +1,6 @@
 #include "common/flat_map.hpp"
 
+#include <csignal>
 #include <fstream>
 #include <iostream>
 #include <print>
@@ -8,11 +9,22 @@
 #include <string_view>
 #include <vector>
 
+#include <common/execution/ThreadPool.hpp>
 #include <common/tcp/Listener.hpp>
 #include <common/tcp/Socket.hpp>
 
 constexpr unsigned short PORT = 8000;
 constexpr size_t BUFFER_SIZE = 4096;
+
+static volatile std::sig_atomic_t g_running = 1;
+
+void signal_handler(const int signal)
+{
+	if (signal == SIGINT)
+	{
+		g_running = 0;
+	}
+}
 
 std::string get_mime_type(const std::string_view path)
 {
@@ -129,6 +141,8 @@ void handle_client(tcp::Socket client_socket)
 
 int main()
 {
+	std::signal(SIGINT, signal_handler);
+
 	try
 	{
 		const tcp::Listener listener;
@@ -137,23 +151,32 @@ int main()
 		listener.bind(PORT);
 		listener.listen(10);
 
-		std::cout << std::format("WEB server is running on http://localhost:{} ...\n", PORT);
+		execution::ThreadPool pool;
 
-		while (true)
+		std::cout << std::format("WEB server is running on http://localhost:{} ...\n", PORT);
+		while (g_running)
 		{
 			tcp::Socket client_socket = listener.accept();
+
 			if (!client_socket.valid())
 			{
-				std::cerr << "Error: Failed to create client connection" << std::endl;
+				if (!g_running)
+				{
+					break;
+				}
+
+				std::cerr << "Error: Failed to create client connection\n";
 				continue;
 			}
 
-			handle_client(std::move(client_socket));
+			pool.enqueue([client_socket = std::move(client_socket)]() mutable {
+				handle_client(std::move(client_socket));
+			});
 		}
 	}
 	catch (const std::exception& e)
 	{
-		std::cerr << "Error: " << e.what() << std::endl;
+		std::cerr << "Error: " << e.what() << '\n';
 		return 1;
 	}
 

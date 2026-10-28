@@ -1,5 +1,5 @@
-#ifndef PROJECTS_SOCKET_HPP
-#define PROJECTS_SOCKET_HPP
+#ifndef NETWORKING_SOCKET_H
+#define NETWORKING_SOCKET_H
 
 #include <stdint.h>
 
@@ -21,9 +21,10 @@ int tcp_socket_recv(socket_t socket, char* buffer, size_t size);
 void tcp_socket_close(socket_t socket);
 int tcp_socket_bind(socket_t socket, unsigned short port);
 int tcp_socket_listen(socket_t socket, int backlog);
+int tcp_socket_wait_for(socket_t socket, long timeout_ms);
 socket_t tcp_socket_accept(socket_t socket);
 int tcp_socket_set_reuse_addr(socket_t socket, int reuse);
 
 NET_C_END
 
-#endif // PROJECTS_SOCKET_HPP
+#endif // NETWORKING_SOCKET_H

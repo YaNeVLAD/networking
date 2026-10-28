@@ -32,3 +32,25 @@ Socket Listener::accept() const
 {
 	return Socket{ tcp_socket_accept(native()) };
 }
+
+std::optional<Socket> Listener::wait_for(long timeout_ms) const
+{
+	const int result = tcp_socket_wait_for(native(), timeout_ms);
+	if (result == 0)
+	{
+		return std::nullopt;
+	}
+
+	if (result < 0)
+	{
+		throw std::runtime_error("Failed to wait for client connection");
+	}
+
+	auto client = accept();
+	if (!client)
+	{
+		throw std::runtime_error("Failed to accept client connection");
+	}
+
+	return client;
+}

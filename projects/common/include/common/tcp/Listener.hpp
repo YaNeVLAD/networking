@@ -1,5 +1,7 @@
 #pragma once
 
+#include <optional>
+
 #include <common/tcp/Socket.hpp>
 #include <common/tcp/details/BaseSocket.hpp>
 
@@ -16,6 +18,7 @@ public:
 	void set_reuse_address(bool reuse) const;
 
 	[[nodiscard]] Socket accept() const;
+	[[nodiscard]] std::optional<Socket> wait_for(long timeout_ms) const;
 };
 
 } // namespace tcp
