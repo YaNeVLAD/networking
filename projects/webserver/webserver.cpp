@@ -23,9 +23,9 @@ std::string get_mime_type(const std::string_view path)
 	}
 
 	auto ext = std::string(path.substr(pos));
-	for (char& c : ext)
+	for (char& ch : ext)
 	{
-		c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+		ch = static_cast<char>(std::tolower(static_cast<unsigned char>(ch)));
 	}
 
 	constexpr auto EXT_MIME_TYPE_MAP = re::make_flat_map<std::string_view, std::string_view>({
@@ -40,6 +40,7 @@ std::string get_mime_type(const std::string_view path)
 		{ ".svg", "image/svg+xml" },
 		{ ".txt", "text/plain; charset=utf-8" },
 	});
+
 	return std::string(EXT_MIME_TYPE_MAP.get(ext, "application/octet-stream"));
 }
 
