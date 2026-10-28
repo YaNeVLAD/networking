@@ -1,46 +1,27 @@
 #pragma once
 
+#include <span>
 #include <string>
+#include <string_view>
 
-#include <common/tcp/socket.h>
+#include <common/tcp/details/BaseSocket.hpp>
 
 namespace tcp
 {
 
-class Socket
+class Socket : public details::BaseSocket
 {
-	struct NetInitializer
-	{
-		NetInitializer();
-		~NetInitializer();
-	};
-
 public:
-	Socket();
+	using BaseSocket::BaseSocket;
 
 	explicit Socket(socket_t socket);
 
-	Socket(const Socket& socket) = delete;
-	Socket& operator=(const Socket& socket) = delete;
+	void connect(std::string_view ip4, unsigned short port) const;
 
-	Socket(Socket&& other) noexcept;
-
-	Socket& operator=(Socket&& other) noexcept;
-
-	~Socket();
-
-	void connect(const std::string& ip, unsigned short port) const;
-
-	void send(const std::string& message) const;
-
-	void close();
+	void send(std::span<const std::byte> data) const;
+	void send(std::string_view message) const;
 
 	[[nodiscard]] std::string receive(size_t maxSize) const;
-
-	[[nodiscard]] bool valid() const;
-
-private:
-	socket_t m_socket{};
 };
 
 } // namespace tcp
