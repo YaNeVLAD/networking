@@ -1,14 +1,47 @@
+#include "common/flat_map.hpp"
+
 #include <fstream>
 #include <iostream>
 #include <print>
 #include <sstream>
 #include <string>
+#include <string_view>
+#include <vector>
 
 #include <common/tcp/Listener.hpp>
 #include <common/tcp/Socket.hpp>
 
 constexpr unsigned short PORT = 8000;
 constexpr size_t BUFFER_SIZE = 4096;
+
+std::string get_mime_type(const std::string_view path)
+{
+	const auto pos = path.find_last_of('.');
+	if (pos == std::string::npos)
+	{
+		return "application/octet-stream";
+	}
+
+	auto ext = std::string(path.substr(pos));
+	for (char& c : ext)
+	{
+		c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+	}
+
+	constexpr auto EXT_MIME_TYPE_MAP = re::make_flat_map<std::string_view, std::string_view>({
+		{ ".html", "text/html; charset=utf-8" },
+		{ ".css", "text/css; charset=utf-8" },
+		{ ".js", "application/javascript; charset=utf-8" },
+		{ ".json", "application/json; charset=utf-8" },
+		{ ".png", "image/png" },
+		{ ".jpg", "image/jpeg" },
+		{ ".jpeg", "image/jpeg" },
+		{ ".gif", "image/gif" },
+		{ ".svg", "image/svg+xml" },
+		{ ".txt", "text/plain; charset=utf-8" },
+	});
+	return std::string(EXT_MIME_TYPE_MAP.get(ext, "application/octet-stream"));
+}
 
 void handle_client(tcp::Socket client_socket)
 {
@@ -44,28 +77,52 @@ void handle_client(tcp::Socket client_socket)
 	}
 
 	std::string filename = path.substr(1);
-	if (std::ifstream file(filename, std::ios::binary); !file.is_open())
+	if (std::ifstream file(filename, std::ios::binary | std::ios::ate); !file.is_open())
 	{
 		std::string body = "File Not Found";
-		std::string response = "HTTP/1.1 404 Not Found\r\n"
-							   "Content-Type: text/plain; charset=utf-8\r\n"
-							   "Content-Length: "
-			+ std::to_string(body.size()) + "\r\n\r\n" + body;
+		auto response = std::format(
+			"HTTP/1.1 404 Not Found\r\n"
+			"Content-Type: text/plain; charset=utf-8\r\n"
+			"Content-Length: {}\r\n\r\n"
+			"{}",
+			body.size(), body);
+
 		client_socket.send(response);
 		std::cout << "[LOG] 404 Not Found: " << filename << std::endl;
 	}
 	else
 	{
-		std::ostringstream file_stream;
-		file_stream << file.rdbuf();
-		std::string body = file_stream.str();
+		std::streamsize size = file.tellg();
+		file.seekg(0, std::ios::beg);
 
-		std::string response = "HTTP/1.1 200 OK\r\n"
-							   "Content-Type: text/html; charset=utf-8\r\n"
-							   "Content-Length: "
-			+ std::to_string(body.size()) + "\r\n\r\n" + body;
-		client_socket.send(response);
-		std::cout << "[LOG] 200 OK File sent: " << filename << std::endl;
+		std::vector<char> buffer(static_cast<size_t>(size));
+		if (file.read(buffer.data(), size))
+		{
+			std::string body(buffer.begin(), buffer.end());
+			std::string mime_type = get_mime_type(filename);
+			auto response = std::format(
+				"HTTP/1.1 200 OK\r\n"
+				"Content-Type: {}\r\n"
+				"Content-Length: {}\r\n\r\n"
+				"{}",
+				mime_type, body.size(), body);
+
+			client_socket.send(response);
+			std::cout << "[LOG] 200 OK File sent: " << filename << " (" << mime_type << ")" << std::endl;
+		}
+		else
+		{
+			std::string body = "Internal Server Error";
+			auto response = std::format(
+				"HTTP/1.1 500 Internal Server Error\r\n"
+				"Content-Type: text/plain; charset=utf-8\r\n"
+				"Content-Length: {}\r\n\r\n"
+				"{}",
+				body.size(), body);
+
+			client_socket.send(response);
+			std::cout << "[LOG] 500 Error reading file: " << filename << std::endl;
+		}
 	}
 }
 
