@@ -3,7 +3,7 @@
 
 #include <stddef.h>
 
-#include <common/config.h>
+#include <common/net/config.h>
 
 NET_C_START
 

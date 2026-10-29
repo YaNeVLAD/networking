@@ -65,8 +65,7 @@ BaseSocket& BaseSocket::operator=(BaseSocket&& other) noexcept
 	if (this != &other)
 	{
 		close();
-		m_socket = other.m_socket;
-		other.m_socket = NET_INVALID_SOCKET;
+		m_socket = std::exchange(other.m_socket, NET_INVALID_SOCKET);
 	}
 
 	return *this;

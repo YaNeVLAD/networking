@@ -1,15 +1,10 @@
 #ifndef NETWORKING_SOCKET_H
 #define NETWORKING_SOCKET_H
 
-#include <stdint.h>
-
-#include <common/config.h>
+#include <common/net/c/socket.h>
+#include <common/net/config.h>
 
 NET_C_START
-
-typedef intptr_t socket_t;
-#define NET_INVALID_SOCKET ((socket_t)(-1))
-#define NET_SOCKET_ERROR ((socket_t)(-1))
 
 int tcp_net_init(void);
 void tcp_net_shutdown(void);
