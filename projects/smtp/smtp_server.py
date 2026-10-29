@@ -1,5 +1,6 @@
 import socket
 
+
 def run_server():
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -29,35 +30,41 @@ def run_server():
                 data = client_sock.recv(1024)
                 if not data:
                     break
-                line = data.decode('utf-8', errors='ignore')
+
+                text_chunk = data.decode('utf-8', errors='ignore')
 
                 if data_mode:
-                    if line.strip() == '.':
-                        data_mode = False
-                        print("--- MSG RECEIVED ---")
-                        print("".join(message_data))
-                        print("--------------------")
-                        client_sock.sendall(b"250 OK: message accepted for delivery\r\n")
-                        message_data = []
-                    else:
-                        message_data.append(line)
+                    lines = text_chunk.splitlines(keepends=True)
+                    for line in lines:
+                        if line.strip() == '.':
+                            data_mode = False
+                            print("--- MSG RECEIVED ---")
+                            print("".join(message_data))
+                            print("--------------------")
+                            client_sock.sendall(b"250 OK: message accepted for delivery\r\n")
+                            break
+                        else:
+                            message_data.append(line)
                     continue
 
-                command = line.strip()
-                print(f"C: {command}")
+                line = text_chunk.strip()
+                if not line:
+                    continue
 
-                if command.upper().startswith("HELO") or command.upper().startswith("EHLO"):
+                print(f"C: {line}")
+
+                if line.upper().startswith("HELO") or line.upper().startswith("EHLO"):
                     client_sock.sendall(b"250 Hello client\r\n")
-                elif command.upper().startswith("MAIL FROM:"):
-                    mail_from = command[10:].strip()
+                elif line.upper().startswith("MAIL FROM:"):
+                    mail_from = line[10:].strip()
                     client_sock.sendall(b"250 OK\r\n")
-                elif command.upper().startswith("RCPT TO:"):
-                    rcpt_to = command[8:].strip()
+                elif line.upper().startswith("RCPT TO:"):
+                    rcpt_to = line[8:].strip()
                     client_sock.sendall(b"250 OK\r\n")
-                elif command.upper() == "DATA":
+                elif line.upper() == "DATA":
                     data_mode = True
                     client_sock.sendall(b"354 Start mail input; end with <CRLF>.<CRLF>\r\n")
-                elif command.upper() == "QUIT":
+                elif line.upper() == "QUIT":
                     client_sock.sendall(b"221 Bye\r\n")
                     break
                 else:
