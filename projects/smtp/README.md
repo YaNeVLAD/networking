@@ -16,7 +16,6 @@
 ## Структура проекта
 
 ```text
-.
 ├── CMakeLists.txt
 ├── common/
 │   ├── include/

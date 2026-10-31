@@ -20,8 +20,6 @@ def run_server():
 
         client_sock.sendall(b"220 localhost ESMTP Custom Server\r\n")
 
-        mail_from = ""
-        rcpt_to = ""
         data_mode = False
         message_data = []
 
@@ -53,18 +51,18 @@ def run_server():
 
                 print(f"C: {line}")
 
-                if line.upper().startswith("HELO") or line.upper().startswith("EHLO"):
+                if line.upper().startswith("EHLO"):
+                    client_sock.sendall(b"250-localhost ESMTP Custom Server\r\n250-SIZE 35600000\r\n250 OK\r\n")
+                elif line.upper().startswith("HELO"):
                     client_sock.sendall(b"250 Hello client\r\n")
                 elif line.upper().startswith("MAIL FROM:"):
-                    mail_from = line[10:].strip()
                     client_sock.sendall(b"250 OK\r\n")
                 elif line.upper().startswith("RCPT TO:"):
-                    rcpt_to = line[8:].strip()
                     client_sock.sendall(b"250 OK\r\n")
-                elif line.upper() == "DATA":
+                elif line.upper().startswith("DATA"):
                     data_mode = True
                     client_sock.sendall(b"354 Start mail input; end with <CRLF>.<CRLF>\r\n")
-                elif line.upper() == "QUIT":
+                elif line.upper().startswith("QUIT"):
                     client_sock.sendall(b"221 Bye\r\n")
                     break
                 else:
@@ -74,6 +72,7 @@ def run_server():
         finally:
             client_sock.close()
             print(f"[-] Connection closed with {addr}")
+
 
 if __name__ == "__main__":
     run_server()
