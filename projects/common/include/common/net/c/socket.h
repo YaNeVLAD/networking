@@ -1,4 +1,5 @@
-#pragma once
+#ifndef NET_SOCKET_H
+#define NET_SOCKET_H
 
 #include <stddef.h>
 
@@ -11,3 +12,5 @@ typedef intptr_t socket_t;
 #define NET_SOCKET_ERROR ((socket_t)(-1))
 
 NET_C_END
+
+#endif

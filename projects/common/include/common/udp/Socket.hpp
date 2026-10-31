@@ -18,8 +18,7 @@ struct Datagram
 class Socket : public details::BaseSocket
 {
 public:
-	using BaseSocket::BaseSocket;
-
+	Socket();
 	explicit Socket(socket_t socket);
 
 	void bind(unsigned short port) const;

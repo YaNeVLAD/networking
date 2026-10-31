@@ -1,4 +1,5 @@
-#pragma once
+#ifndef NETWORKING_UDP_SOCKET_H
+#define NETWORKING_UDP_SOCKET_H
 
 #include <stddef.h>
 
@@ -33,3 +34,5 @@ int udp_socket_recv_from(
 int udp_socket_wait_for(socket_t socket, long timeout_ms);
 
 NET_C_END
+
+#endif // NETWORKING_UDP_SOCKET_H

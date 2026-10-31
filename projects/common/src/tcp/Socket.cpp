@@ -13,7 +13,7 @@ Socket::Socket(const socket_t socket)
 
 void Socket::connect(const std::string_view ip4, const unsigned short port) const
 {
-	if (tcp_socket_connect(native(), ip4.data(), port) == NET_INVALID_SOCKET)
+	if (tcp_socket_connect(native(), std::string(ip4).c_str(), port) == NET_INVALID_SOCKET)
 	{
 		throw std::runtime_error("Failed to connect to " + std::string(ip4) + ":" + std::to_string(port));
 	}
@@ -21,10 +21,23 @@ void Socket::connect(const std::string_view ip4, const unsigned short port) cons
 
 void Socket::send(const std::span<const std::byte> data) const
 {
-	if (const int sent = tcp_socket_send(native(), reinterpret_cast<const char*>(data.data()), data.size());
-		sent == NET_SOCKET_ERROR)
+	std::size_t offset = 0;
+
+	while (offset < data.size())
 	{
-		throw std::runtime_error("Failed to send message | Error: " + std::to_string(sent));
+		const auto remaining = data.subspan(offset);
+
+		const int sent = tcp_socket_send(
+			native(),
+			reinterpret_cast<const char*>(remaining.data()),
+			remaining.size());
+
+		if (sent <= 0)
+		{
+			throw std::runtime_error("Failed to send fu TCP message");
+		}
+
+		offset += static_cast<std::size_t>(sent);
 	}
 }
 

@@ -1,5 +1,5 @@
-#ifndef NETWORKING_SOCKET_H
-#define NETWORKING_SOCKET_H
+#ifndef NETWORKING_TCP_SOCKET_H
+#define NETWORKING_TCP_SOCKET_H
 
 #include <common/net/c/socket.h>
 #include <common/net/config.h>
@@ -22,4 +22,4 @@ int tcp_socket_set_reuse_addr(socket_t socket, int reuse);
 
 NET_C_END
 
-#endif // NETWORKING_SOCKET_H
+#endif // NETWORKING_TCP_SOCKET_H

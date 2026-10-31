@@ -5,9 +5,15 @@
 
 using namespace udp;
 
+Socket::Socket()
+{
+	bind(0);
+}
+
 Socket::Socket(const socket_t socket)
 	: BaseSocket(socket)
 {
+	bind(0);
 }
 
 void Socket::bind(const unsigned short port) const
@@ -78,7 +84,7 @@ Datagram Socket::receive_from(const size_t maxSize) const
 	Datagram datagram;
 	datagram.data.resize(maxSize);
 
-	std::array<char, 16> senderIp4{};
+	std::array<char, 32> senderIp4{};
 
 	const int received = udp_socket_recv_from(
 		native(),
